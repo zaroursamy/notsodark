@@ -24,12 +24,19 @@ lazy val commonDependencies = Seq(
   "ch.qos.logback" % "logback-classic" % LogbackVersion,
   "org.scalaz" %% "scalaz-core" % ScalazVersion,
   "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingVersion,
+  "org.apache.hadoop" % "hadoop-client" % HadoopVersion,
   "org.scalatest" %% "scalatest" % ScalaTestVersion % Test
 )
 
 lazy val sparkDependencies = Seq(
   "org.apache.spark" %% "spark-core" % SparkVersion,
   "org.apache.spark" %% "spark-sql" % SparkVersion
+)
+
+lazy val jacksonDependencies = Seq(
+  "com.fasterxml.jackson.core" % "jackson-core" % JacksonVersion,
+  "com.fasterxml.jackson.core" % "jackson-databind" % JacksonVersion,
+  "com.fasterxml.jackson.module" % "jackson-module-scala_2.13" % JacksonVersion
 )
 
 val kafkaDependencies = Seq(
@@ -47,12 +54,10 @@ val akkaDependencies = Seq(
 
 val parquet4sDependencies = Seq(
   "com.github.mjakubowski84" %% "parquet4s-core" % Parquet4sVersion,
-  "com.github.mjakubowski84" %% "parquet4s-akka" % Parquet4sVersion,
-  "org.apache.hadoop" % "hadoop-client" % HadoopVersion
-)
+  "com.github.mjakubowski84" %% "parquet4s-akka" % Parquet4sVersion)
 
 lazy val settings = Seq(
-  scalacOptions ++=  Seq(
+  scalacOptions ++= Seq(
     "-unchecked",
     "-feature",
     "-language:existentials",
@@ -74,10 +79,10 @@ lazy val settings = Seq(
 )
 
 lazy val assemblySettings = Seq(
-  assembly / assemblyJarName  := name.value + ".jar",
+  assembly / assemblyJarName := name.value + ".jar",
   assembly / assemblyMergeStrategy := {
-    case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-    case _                             => MergeStrategy.first
+    case PathList("META-INF", xs@_*) => MergeStrategy.discard
+    case _ => MergeStrategy.first
   }
 )
 
@@ -120,11 +125,7 @@ lazy val darkBatch = (project in file("dark-batch"))
     settings,
     assemblySettings,
     libraryDependencies ++= commonDependencies ++ sparkDependencies,
-    dependencyOverrides ++= Seq(
-      "com.fasterxml.jackson.core" % "jackson-core" % JacksonVersion,
-      "com.fasterxml.jackson.core" % "jackson-databind" % JacksonVersion,
-      "com.fasterxml.jackson.module" % "jackson-module-scala_2.13" % JacksonVersion
-    )
+    dependencyOverrides ++= jacksonDependencies
   )
 
 

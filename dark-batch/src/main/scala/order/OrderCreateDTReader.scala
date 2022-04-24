@@ -8,8 +8,8 @@ class OrderCreateDTReader(sparkSession: SparkSession) {
 
   def readParquet: Dataset[OrderCreateDT] = sparkSession
     .read
-    .format("parquet")
-    .load("create-order")
+    .option("basePath", "create-order")
+    .parquet("create-order")
     .as[OrderCreateDT]
     .cache
 }

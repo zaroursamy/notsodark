@@ -8,5 +8,6 @@ object SessionBuilder {
     .builder()
     .master("local[*]")
     .appName(appName)
+    .config("spark.sql.sources.partitionOverwriteMode", "dynamic")
     .getOrCreate()
 }

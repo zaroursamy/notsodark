@@ -3,7 +3,6 @@ package restaurant
 import com.typesafe.scalalogging.LazyLogging
 import model.restaurant.Restaurant
 import scalaz.Scalaz.futureInstance
-import scalaz._
 import scalaz.std.option._
 import scalaz.syntax.traverse._
 
@@ -16,7 +15,6 @@ class RestaurantNotify(restaurant: Restaurant) extends LazyLogging {
     logger.info(s"Notify restaurant ${restaurant.id}")
     Future(restaurant)
   }
-
 }
 
 object RestaurantNotify{

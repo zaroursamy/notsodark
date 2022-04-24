@@ -21,7 +21,7 @@ class OrderCreateByMenuTest extends AnyFlatSpec {
   val dt: Date = Date.valueOf(defaultOrder.dt)
 
 
-  "Given orders created, it" should "aggregate by menu" in {
+  "Given orders created, calling createMenuStats" should "aggregate by menu" in {
 
     val orderCreateByMenuSeq = Iterator(
       defaultOrder,

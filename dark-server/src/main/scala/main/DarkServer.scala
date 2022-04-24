@@ -7,18 +7,16 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
-import com.sksamuel.avro4s.RecordFormat
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import model.restaurant.Restaurant
 import order.model.request.OrderRequestInterface.{OrderCompleteRequest, OrderCreateRequest}
 import order.model.response.{OrdersCompleted, OrdersCreated}
 import order.persistence.PersistenceDB
-import restaurant.{RestaurantFetcher, RestaurantNotify}
-import spray.json.DefaultJsonProtocol._
-import model.OrderRestaurant
 import order.streaming.{OrderStreaming, OrderTopics}
-import spray.json.RootJsonFormat
+import restaurant.{RestaurantFetcher, RestaurantNotify}
+import serde.HttpImplicits._
+import serde.KafkaImplicits._
 
 import scala.concurrent.Future
 import scala.io.StdIn
@@ -30,15 +28,6 @@ object DarkServer extends App with LazyLogging {
   implicit val system = ActorSystem(Behaviors.empty, "DarkServer")
   implicit val executionContext = system.executionContext
 
-  implicit val orderRequestFormat: RootJsonFormat[OrderCreateRequest] = jsonFormat7(OrderCreateRequest)
-  implicit val orderCompletedFormat: RootJsonFormat[OrderCompleteRequest] = jsonFormat2(OrderCompleteRequest)
-  implicit val ordersCreatedFormat: RootJsonFormat[OrdersCreated] = jsonFormat1(OrdersCreated)
-  implicit val ordersCompletedFormat: RootJsonFormat[OrdersCompleted] = jsonFormat1(OrdersCompleted)
-  implicit val restaurantFormat: RootJsonFormat[Restaurant] = jsonFormat3(Restaurant)
-  implicit val orderRestaurantFormat: RootJsonFormat[OrderRestaurant] = jsonFormat2(OrderRestaurant)
-  implicit val orderCreateRecordFormat: RecordFormat[OrderCreateRequest] = RecordFormat[OrderCreateRequest]
-  implicit val orderCompleteRecordFormat: RecordFormat[OrderCompleteRequest] = RecordFormat[OrderCompleteRequest]
-
   val config = ConfigFactory.load()
 
   val orderDB = PersistenceDB[OrderCreateRequest, Long]("created-orders")
@@ -47,9 +36,9 @@ object DarkServer extends App with LazyLogging {
 
 
   val route = concat(
-    post{
-      path("create-order"){
-        entity(as[OrderCreateRequest]){ orderCreate: OrderCreateRequest ⇒
+    post {
+      path("create-order") {
+        entity(as[OrderCreateRequest]) { orderCreate: OrderCreateRequest ⇒
 
           val orderSavedInDB: Future[OrderCreateRequest] = orderDB.saveInDB(orderCreate)
 
@@ -57,48 +46,48 @@ object DarkServer extends App with LazyLogging {
 
           OrderStreaming.produceOrderCreate(OrderTopics.CREATE_ORDERS, orderCreate)
 
-          onSuccess(orderSavedInDB){
+          onSuccess(orderSavedInDB) {
             complete(_)
           }
         }
       }
     },
-    post{
-      path("complete-order"){
-        entity(as[OrderCompleteRequest]){ orderComplete ⇒
+    post {
+      path("complete-order") {
+        entity(as[OrderCompleteRequest]) { orderComplete ⇒
 
           val orderCompletedSaveInDB: Future[OrderCompleteRequest] = orderCompletedDB.saveInDB(orderComplete)
           OrderStreaming.produceOrderComplete(OrderTopics.COMPLETE_ORDERS, orderComplete)
 
-          onSuccess(orderCompletedSaveInDB){
+          onSuccess(orderCompletedSaveInDB) {
             complete(_)
           }
         }
       }
     },
-    post{
-      path("create-restaurants"){
-        entity(as[Restaurant]){restaurant ⇒
+    post {
+      path("create-restaurants") {
+        entity(as[Restaurant]) { restaurant ⇒
 
-          onSuccess(restaurantDB.saveInDB(restaurant)){
+          onSuccess(restaurantDB.saveInDB(restaurant)) {
             complete(_)
           }
         }
       }
     },
-    get{
-      pathPrefix("order" / LongNumber){id ⇒
+    get {
+      pathPrefix("order" / LongNumber) { id ⇒
         val order: Future[Option[OrderCreateRequest]] = orderDB.getById(id)
 
-        onSuccess(order){
+        onSuccess(order) {
           case Some(o) ⇒ complete(o)
           case None ⇒ complete(StatusCodes.NotFound)
         }
       }
     },
-    get{
-      pathPrefix("created-orders" ){
-        onSuccess(orderDB.fetchAll){results ⇒
+    get {
+      pathPrefix("created-orders") {
+        onSuccess(orderDB.fetchAll) { results ⇒
           results.toList match {
             case Nil ⇒ complete(StatusCodes.NotFound)
             case l ⇒ complete(OrdersCreated(l))
@@ -106,9 +95,9 @@ object DarkServer extends App with LazyLogging {
         }
       }
     },
-    get{
-      pathPrefix("completed-orders" ){
-        onSuccess(orderCompletedDB.fetchAll){results ⇒
+    get {
+      pathPrefix("completed-orders") {
+        onSuccess(orderCompletedDB.fetchAll) { results ⇒
           results.toList match {
             case Nil ⇒ complete(StatusCodes.NotFound)
             case l ⇒ complete(OrdersCompleted(l))

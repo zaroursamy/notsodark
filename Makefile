@@ -20,6 +20,10 @@ create-orders:
 complete-orders:
 	./scripts/complete-order.sh
 
+batch:
+	export JAVA_HOME=/usr/bin/java
+	sbt "project darkBatch" run
+
 stop:
 	docker-compose stop
 
