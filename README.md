@@ -32,7 +32,7 @@ make server
 
 ### Run streaming application
 ````bash
-sbt streaming
+make streaming
 ````
 
 ### Create restaurants
