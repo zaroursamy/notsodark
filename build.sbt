@@ -82,6 +82,7 @@ lazy val assemblySettings = Seq(
   assembly / assemblyJarName := name.value + ".jar",
   assembly / assemblyMergeStrategy := {
     case PathList("META-INF", xs@_*) => MergeStrategy.discard
+    case "reference.conf" => MergeStrategy.concat
     case _ => MergeStrategy.first
   }
 )
