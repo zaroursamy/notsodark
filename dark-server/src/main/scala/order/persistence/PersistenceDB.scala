@@ -14,13 +14,13 @@ trait PersistenceDB[T <: {val id: U}, U] {
     Future(item)
   }
 
-  def fetchAll: Future[LazyList[T]] =  Future(items)
+  def fetchAll: Future[LazyList[T]] = Future(items)
 
   def getById(id: U): Future[Option[T]] = Future(items.find(_.id == id))
 
 }
 
-object PersistenceDB{
+object PersistenceDB {
 
   def apply[T <: {val id: U}, U](name: String): PersistenceDB[T, U] = new PersistenceDB[T, U] {
     override def dbName: String = name

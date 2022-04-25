@@ -5,13 +5,11 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import model.restaurant.Restaurant
 import order.model.request.OrderRequestInterface.{OrderCompleteRequest, OrderCreateRequest}
-import order.model.response.{OrdersCompleted, OrdersCreated}
 import order.persistence.PersistenceDB
 import order.streaming.{OrderStreaming, OrderTopics}
 import restaurant.{RestaurantFetcher, RestaurantNotify}
@@ -57,6 +55,7 @@ object DarkServer extends App with LazyLogging {
         entity(as[OrderCompleteRequest]) { orderComplete ⇒
 
           val orderCompletedSaveInDB: Future[OrderCompleteRequest] = orderCompletedDB.saveInDB(orderComplete)
+
           OrderStreaming.produceOrderComplete(OrderTopics.COMPLETE_ORDERS, orderComplete)
 
           onSuccess(orderCompletedSaveInDB) {
@@ -68,39 +67,9 @@ object DarkServer extends App with LazyLogging {
     post {
       path("create-restaurants") {
         entity(as[Restaurant]) { restaurant ⇒
-
+          
           onSuccess(restaurantDB.saveInDB(restaurant)) {
             complete(_)
-          }
-        }
-      }
-    },
-    get {
-      pathPrefix("order" / LongNumber) { id ⇒
-        val order: Future[Option[OrderCreateRequest]] = orderDB.getById(id)
-
-        onSuccess(order) {
-          case Some(o) ⇒ complete(o)
-          case None ⇒ complete(StatusCodes.NotFound)
-        }
-      }
-    },
-    get {
-      pathPrefix("created-orders") {
-        onSuccess(orderDB.fetchAll) { results ⇒
-          results.toList match {
-            case Nil ⇒ complete(StatusCodes.NotFound)
-            case l ⇒ complete(OrdersCreated(l))
-          }
-        }
-      }
-    },
-    get {
-      pathPrefix("completed-orders") {
-        onSuccess(orderCompletedDB.fetchAll) { results ⇒
-          results.toList match {
-            case Nil ⇒ complete(StatusCodes.NotFound)
-            case l ⇒ complete(OrdersCompleted(l))
           }
         }
       }

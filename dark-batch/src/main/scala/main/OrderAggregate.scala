@@ -10,22 +10,20 @@ object OrderAggregate extends App with LazyLogging {
 
   implicit val sparkSession: SparkSession = SessionBuilder.sparkSession("OrderAggregate")
 
-  val reader = new OrderCreateDTReader(sparkSession)
-
-  val ds: Dataset[OrderCreateDT] = reader.readParquet
+  val ds: Dataset[OrderCreateDT] = new OrderCreateDTReader(sparkSession).readParquet
 
   val orderCreateByMenu: Dataset[OrderCreateByMenu] = OrderCreateByMenu.orderCreateByMenu(ds).cache
 
   orderCreateByMenu.show()
 
-  Try{
+  Try {
     new OrderCreateByMenuWriter(orderCreateByMenu).writeCsv()
   }.fold(
-    {thr ⇒
+    { thr ⇒
       logger.warn(thr.getMessage, thr)
     },
-    {_ ⇒
-      logger.info("succesfully wrote csv")
+    { _ ⇒
+      logger.info("Succesfully wrote csv")
     }
   )
   sparkSession.stop()

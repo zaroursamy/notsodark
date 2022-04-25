@@ -14,9 +14,8 @@ import order.streaming.OrderTopics
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 
-class OrderWriter(orderCreateRequestIterable: Iterable[OrderCreateRequest]) extends LazyLogging {
+class OrderWriter(orderCreateRequestIterable: Iterable[OrderCreateRequest], implicit val actorSystem: ActorSystem) extends LazyLogging {
 
-  implicit val actorSystem: ActorSystem = ActorSystem()
   val writeOptions = ParquetWriter.Options(
     compressionCodecName = CompressionCodecName.SNAPPY,
     writeMode = ParquetFileWriter.Mode.CREATE

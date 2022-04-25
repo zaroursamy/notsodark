@@ -17,7 +17,7 @@ class RestaurantNotify(restaurant: Restaurant) extends LazyLogging {
   }
 }
 
-object RestaurantNotify{
+object RestaurantNotify {
 
   def notifyBestRestaurant(restaurantFetcher: RestaurantFetcher): Future[Option[Restaurant]] = restaurantFetcher
     .findBestRestaurant

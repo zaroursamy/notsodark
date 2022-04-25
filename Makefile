@@ -21,14 +21,7 @@ complete-orders:
 	./scripts/complete-order.sh
 
 batch:
-	export JAVA_HOME=/usr/bin/java
-	sbt "project darkBatch" run
+	export JAVA_HOME=/usr/bin/java && sbt "project darkBatch" run
 
 stop:
 	docker-compose stop
-
-#get-completed-orders:
-#	curl -X GET localhost:8080/completed-orders -H 'Content-Type: application/json' | jq .
-#
-#get-created-orders:
-#	curl -X GET localhost:8080/created-orders -H 'Content-Type: application/json' | jq .
